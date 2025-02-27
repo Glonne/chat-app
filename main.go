@@ -10,9 +10,11 @@ import (
 
 func main() {
 	models.InitDB() // 初始化 PostgreSQL
-
 	r := gin.Default()
-
+	r.Static("/", "./static")
+	r.GET("/", func(c *gin.Context) {
+		c.File("./static/chat.html")
+	})
 	// 公开路由
 	r.POST("/register", controllers.Register)
 	r.POST("/login", controllers.Login)
