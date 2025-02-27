@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>实时聊天</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        #login, #chat { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
+        #messages { height: 300px; overflow-y: scroll; border: 1px solid #ddd; padding: 10px; }
+        #input { width: 70%; padding: 5px; }
+        button { padding: 5px 10px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div id="login">
+        <h2>登录</h2>
+        <input id="username" type="text" placeholder="用户名" value="alice">
+        <input id="password" type="text" placeholder="密码" value="123">
+        <button onclick="login()">登录</button>
+        <p id="loginStatus"></p>
+    </div>
+    <div id="chat" class="hidden">
+        <h2>聊天室: <span id="roomName">StudyGroup</span></h2>
+        <div id="messages"></div>
+        <input id="input" type="text" placeholder="输入消息">
+        <button onclick="sendMessage()">发送</button>
+    </div>
+    <script>
+        let token = null;
+        let ws = null;
+
+        function login() {
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            fetch('/login', {  // 相对路径，同源
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.token) {
+                    token = data.token;
+                    document.getElementById("loginStatus").textContent = "登录成功！";
+                    document.getElementById("login").classList.add("hidden");
+                    document.getElementById("chat").classList.remove("hidden");
+                    connectWebSocket();
+                } else {
+                    document.getElementById("loginStatus").textContent = "登录失败：" + data.error;
+                }
+            })
+            .catch(err => console.error("登录错误:", err));
+        }
+
+        function connectWebSocket() {
+            const roomId = "1";
+            ws = new WebSocket(`ws://${location.host}/api/ws/${roomId}`, ["Bearer", token]);  // 同源动态 host
+            ws.onopen = () => console.log("WebSocket 已连接");
+            ws.onmessage = (e) => {
+                const msgDiv = document.createElement("div");
+                msgDiv.textContent = e.data;
+                document.getElementById("messages").appendChild(msgDiv);
+                document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+            };
+            ws.onerror = (e) => console.error("WebSocket 错误:", e);
+            ws.onclose = () => console.log("WebSocket 关闭");
+        }
+
+        function sendMessage() {
+            const input = document.getElementById("input");
+            const message = input.value.trim();
+            if (message && ws) {
+                ws.send(message);
+                input.value = "";
+            }
+        }
+
+        document.getElementById("input").addEventListener("keypress", (e) => {
+            if (e.key === "Enter") sendMessage();
+        });
+    </script>
+</body>
+</html>
