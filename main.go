@@ -11,7 +11,6 @@ import (
 func main() {
 	models.InitDB() // 初始化 PostgreSQL
 	r := gin.Default()
-	r.Static("/", "./static")
 	r.GET("/", func(c *gin.Context) {
 		c.File("./static/chat.html")
 	})
