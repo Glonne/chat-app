@@ -1,34 +1,31 @@
 package main
 
 import (
-	"chat-app/controllers"
-	"chat-app/middleware"
-	"chat-app/models"
-
-	"github.com/gin-gonic/gin"
+    "github.com/gin-gonic/gin"
+    "chat-app/controllers"
+    "chat-app/middleware"
+    "chat-app/models"
 )
 
 func main() {
-	models.InitDB() // 初始化 PostgreSQL
-	r := gin.Default()
-	r.GET("/", func(c *gin.Context) {
-		c.File("./static/chat.html")
-	})
-	// 公开路由
-	r.POST("/register", controllers.Register)
-	r.POST("/login", controllers.Login)
-	r.GET("/rooms", controllers.GetRooms)
+    models.InitDB()
+    r := gin.Default()
 
-	// 认证路由
-	auth := r.Group("/api", middleware.AuthMiddleware())
-	{
-		auth.POST("/rooms", controllers.CreateRoom)
-		auth.GET("/ws/:room_id", controllers.HandleWebSocket)
-		auth.GET("/rooms/:room_id/messages", controllers.GetRoomMessages)
-	}
+    r.GET("/", func(c *gin.Context) {
+        c.File("./static/chat.html")
+    })
 
-	// 启动消息广播
-	go controllers.StartMessageBroadcaster()
+    r.POST("/register", controllers.Register)
+    r.POST("/login", controllers.Login)
+    r.GET("/rooms", controllers.GetRooms)
+    auth := r.Group("/api", middleware.AuthMiddleware())
+    {
+        auth.POST("/rooms", controllers.CreateRoom)
+        auth.GET("/rooms/:room_id/messages", controllers.GetRoomMessages)
+    }
+    // WebSocket 不加中间件
+    r.GET("/api/ws/:room_id", controllers.HandleWebSocket)
 
-	r.Run(":8080")
+    go controllers.StartMessageBroadcaster()
+    r.Run(":8080")
 }
