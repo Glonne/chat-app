@@ -1,0 +1,33 @@
+body {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+}
+
+input, button {
+    margin: 5px;
+    padding: 5px;
+}
+
+#messages {
+    border: 1px solid #ccc;
+    height: 200px;
+    overflow-y: auto;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+#room-list {
+    list-style: none;
+    padding: 0;
+}
+
+#room-list li {
+    padding: 5px;
+    cursor: pointer;
+}
+
+#room-list li:hover {
+    background-color: #f0f0f0;
+}
